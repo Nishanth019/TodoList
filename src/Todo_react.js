@@ -21,35 +21,42 @@ const Todo_react = () => {
   const [inputData, setInputdata] = useState("");
   const [items, setItems] = useState(getLocalItems());
   
-  useEffect(()=>{
-    localStorage.setItem("mytodolist",JSON.stringify(items));
-  },[items])
-
-  const addItems = () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await axios.get('/read');
+      setItems(response.data);
+    };
+    fetchData();
+  }, []);
+  
+  const addItems = async () => {
     if (inputData) {
       const id = new Date().getTime().toString();
-      const newArray = { id: id, Data: inputData };
-      setItems([...items, newArray]);
-      setInputdata("");
+      const data = { id, Data: inputData };
+      await axios.post('/create', data);
+      const response = await axios.get('/read');
+      setItems(response.data);
+      setInputdata('');
     } else {
-      toast.info("Fill the details", {
-        position: "top-center",
+      toast.info('Fill the details', {
+        position: 'top-center',
         autoClose: 1999,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
-        theme: "dark",
+        theme: 'dark',
       });
     }
   };
-
-  const deleteItem = (index) => {
-    const updateItems = items.filter((elem) => index !== elem.id);
-    console.log(updateItems);
-    setItems(updateItems);
+  
+  const deleteItem = async (id) => {
+    await axios.delete(`/delete/${id}`);
+    const response = await axios.get('/read');
+    setItems(response.data);
   };
+  
 
   const removeall = () => {
     setItems([]);
